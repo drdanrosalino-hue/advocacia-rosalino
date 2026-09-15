@@ -1,0 +1,29 @@
+name: Apply 3D assets
+on:
+  push:
+    paths: ['assets3d-trigger.txt']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject premium 3D loader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          tag='<script src="assets3d.js" defer></script>'
+          if tag not in s:
+              s=s.replace('</head>',tag+'</head>')
+              p.write_text(s)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Aplica assets 3D premium na interface"
+          git push
